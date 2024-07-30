@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/Service/todo_model_service.dart';
+
+import '../models/todo_model.dart';
 
 class MyWidget extends StatefulWidget {
   const MyWidget({super.key});
@@ -8,6 +11,21 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descController = TextEditingController();
+  final TodoModelService _todoModelService = TodoModelService();
+  List<TodoModel> _todos = [];
+  Future<void> _loadsTodo() async {
+    _todos = await _todoModelService.getTodos();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    _loadsTodo();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,8 +52,9 @@ class _MyWidgetState extends State<MyWidget> {
         child: Icon(Icons.add),
       ),
       body: ListView.builder(
-        itemCount: 4,
+        itemCount: _todos.length,
         itemBuilder: (context, index) {
+          final todo = _todos[index];
           return Card(
             child: Padding(
               padding: const EdgeInsets.all(10.0),
@@ -43,8 +62,8 @@ class _MyWidgetState extends State<MyWidget> {
                 onTap: () {
                   print("clicked");
                 },
-                title: Text("flutter"),
-                subtitle: Text("material app"),
+                title: Text("${todo.title}"),
+                subtitle: Text("${todo.desc}"),
                 leading: IconButton(
                     onPressed: () {
                       _EditDialogBox();
@@ -82,6 +101,7 @@ class _MyWidgetState extends State<MyWidget> {
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextField(
+                    controller: _titleController,
                     decoration: InputDecoration(
                       hintText: "title",
                     ),
@@ -91,6 +111,7 @@ class _MyWidgetState extends State<MyWidget> {
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextField(
+                    controller: _descController,
                     decoration: InputDecoration(hintText: "desc"),
                     keyboardType: TextInputType.name,
                   ),
@@ -99,8 +120,22 @@ class _MyWidgetState extends State<MyWidget> {
             ),
           ),
           actions: [
-            ElevatedButton(onPressed: () {}, child: Text("submit")),
-            ElevatedButton(onPressed: () {}, child: Text("cancel"))
+            ElevatedButton(
+                onPressed: () async {
+                  final newmodel = TodoModel(
+                      title: _titleController.text, desc: _descController.text);
+                  await _todoModelService.addTodo(newmodel);
+                  _titleController.clear();
+                  _descController.clear();
+                  Navigator.pop(context);
+                  _loadsTodo();
+                },
+                child: Text("submit")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("cancel"))
           ],
         );
       },

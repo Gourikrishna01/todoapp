@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:todo_app/Screens/Home.dart';
+import 'package:todo_app/Service/todo_model_service.dart';
 
-void main() {
+import 'models/todo_model.dart';
+
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(TodoModelAdapter());
+  await TodoModelService().openBox();
   runApp(const MyApp());
 }
 
