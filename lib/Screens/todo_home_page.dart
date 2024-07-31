@@ -66,14 +66,18 @@ class _MyWidgetState extends State<MyWidget> {
                 subtitle: Text("${todo.desc}"),
                 leading: IconButton(
                     onPressed: () {
-                      _EditDialogBox();
+                      _EditDialogBox(index);
                     },
                     icon: Icon(
                       Icons.edit,
                       color: Colors.blue,
                     )),
                 trailing: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      alertDialog();
+                      _todoModelService.deleteTodo(index);
+                      _loadsTodo();
+                    },
                     icon: Icon(
                       Icons.delete,
                       color: Colors.red,
@@ -142,7 +146,11 @@ class _MyWidgetState extends State<MyWidget> {
     );
   }
 
-  Future<void> _EditDialogBox() async {
+  Future<void> _EditDialogBox(int index) async {
+    final todo = _todos[index];
+    final _titleController = TextEditingController(text: todo.title);
+    final _descController = TextEditingController(text: todo.desc);
+
     return showDialog(
       context: context,
       builder: (context) {
@@ -153,10 +161,11 @@ class _MyWidgetState extends State<MyWidget> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Add Task"),
+                Text("Edit Task"),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextField(
+                    controller: _titleController,
                     decoration: InputDecoration(
                       hintText: "title",
                     ),
@@ -166,6 +175,7 @@ class _MyWidgetState extends State<MyWidget> {
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextField(
+                    controller: _descController,
                     decoration: InputDecoration(hintText: "desc"),
                     keyboardType: TextInputType.name,
                   ),
@@ -174,8 +184,40 @@ class _MyWidgetState extends State<MyWidget> {
             ),
           ),
           actions: [
-            ElevatedButton(onPressed: () {}, child: Text("update")),
-            ElevatedButton(onPressed: () {}, child: Text("cancel"))
+            ElevatedButton(
+                onPressed: () async {
+                  final updatedTodo = TodoModel(
+                      title: _titleController.text, desc: _descController.text);
+                  await _todoModelService.updateTodos(index, updatedTodo);
+                  _loadsTodo();
+                  Navigator.pop(context);
+                },
+                child: Text("update")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("cancel"))
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> alertDialog() async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Success"),
+          content: Text("Todo item delete Successfully"),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("OK"),
+            ),
           ],
         );
       },
